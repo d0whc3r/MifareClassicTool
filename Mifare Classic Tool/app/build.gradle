@@ -17,6 +17,12 @@ android {
             minifyEnabled false
         }
     }
+
+    android {
+        lintOptions {
+            abortOnError false
+        }
+    }
 }
 
 dependencies {

@@ -41,6 +41,7 @@ import de.syss.MifareClassicTool.Activities.Preferences.Preference;
 
 /**
  * Provides functions to read/write/analyze a MIFARE Classic tag.
+ *
  * @author Gerhard Klostermeier
  */
 public class MCReader {
@@ -64,6 +65,7 @@ public class MCReader {
 
     /**
      * Initialize a MIFARE Classic reader for the given tag.
+     *
      * @param tag The tag to operate on.
      */
     private MCReader(Tag tag) {
@@ -81,13 +83,13 @@ public class MCReader {
     /**
      * Patch a possibly broken Tag object of HTC One (m7/m8) or Sony
      * Xperia Z3 devices (with Android 5.x.)
-     *
+     * <p>
      * HTC One: "It seems, the reason of this bug is TechExtras of NfcA is null.
      * However, TechList contains MifareClassic." -- bildin.
      * This method will fix this. For more information please refer to
      * https://github.com/ikarus23/MifareClassicTool/issues/52
      * This patch was provided by bildin (https://github.com/bildin).
-     *
+     * <p>
      * Sony Xperia Z3 (+ emmulated MIFARE Classic tag): The buggy tag has
      * two NfcA in the TechList with different SAK values and a MifareClassic
      * (with the Extra of the second NfcA). Both, the second NfcA and the
@@ -197,6 +199,7 @@ public class MCReader {
      * Get new instance of {@link MCReader}.
      * If the tag is "null" or if it is not a MIFARE Classic tag, "null"
      * will be returned.
+     *
      * @param tag The tag to operate on.
      * @return {@link MCReader} object or "null" if tag is "null" or tag is
      * not MIFARE Classic.
@@ -214,8 +217,9 @@ public class MCReader {
 
     /**
      * Read as much as possible from the tag with the given key information.
+     *
      * @param keyMap Keys (A and B) mapped to a sector.
-     * See {@link #buildNextKeyMapPart()}.
+     *               See {@link #buildNextKeyMapPart()}.
      * @return A Key-Value Pair. Keys are the sector numbers, values
      * are the tag data. This tag data (values) are arrays containing
      * one block per field (index 0-3 or 0-15).
@@ -271,6 +275,7 @@ public class MCReader {
      * in the given key file, this could take more than a few minutes.
      * The old key map from {@link #getKeyMap()} will be destroyed and
      * the full new one is gettable afterwards.
+     *
      * @return A Key-Value Pair. Keys are the sector numbers, values
      * are the tag data. The tag data (values) are arrays containing
      * one block per field (index 0-3 or 0-15).
@@ -281,7 +286,7 @@ public class MCReader {
      */
     public SparseArray<String[]> readAsMuchAsPossible() {
         mKeyMapStatus = getSectorCount();
-        while (buildNextKeyMapPart() < getSectorCount()-1);
+        while (buildNextKeyMapPart() < getSectorCount() - 1) ;
         return readAsMuchAsPossible(mKeyMap);
     }
 
@@ -289,11 +294,12 @@ public class MCReader {
      * Read as much as possible from a sector with the given key.
      * Best results are gained from a valid key B (except key B is marked as
      * readable in the access conditions).
+     *
      * @param sectorIndex Index of the Sector to read. (For MIFARE Classic 1K:
-     * 0-63)
-     * @param key Key for authentication.
-     * @param useAsKeyB If true, key will be treated as key B
-     * for authentication.
+     *                    0-63)
+     * @param key         Key for authentication.
+     * @param useAsKeyB   If true, key will be treated as key B
+     *                    for authentication.
      * @return Array of blocks (index 0-3 or 0-15). If a block or a key is
      * marked with {@link #NO_DATA} or {@link #NO_KEY}
      * it means that this data could not be read or found. On authentication error
@@ -302,7 +308,7 @@ public class MCReader {
      * @see #mergeSectorData(String[], String[])
      */
     public String[] readSector(int sectorIndex, byte[] key,
-            boolean useAsKeyB) throws TagLostException {
+                               boolean useAsKeyB) throws TagLostException {
         boolean auth = authenticate(sectorIndex, key, useAsKeyB);
         String[] ret = null;
         // Read sector.
@@ -328,7 +334,7 @@ public class MCReader {
                         throw new IOException();
                     }
                     if (blockBytes.length > 16) {
-                        byte[] blockBytesTmp = Arrays.copyOf(blockBytes,16);
+                        byte[] blockBytesTmp = Arrays.copyOf(blockBytes, 16);
                         blockBytes = blockBytesTmp;
                     }
 
@@ -350,7 +356,7 @@ public class MCReader {
                 }
             }
             ret = blocks.toArray(new String[blocks.size()]);
-            int last = ret.length -1;
+            int last = ret.length - 1;
 
             // Merge key in last block (sector trailer).
             if (!useAsKeyB) {
@@ -381,12 +387,13 @@ public class MCReader {
 
     /**
      * Write a block of 16 byte data to tag.
+     *
      * @param sectorIndex The sector to where the data should be written
-     * @param blockIndex The block to where the data should be written
-     * @param data 16 byte of data.
-     * @param key The MIFARE Classic key for the given sector.
-     * @param useAsKeyB If true, key will be treated as key B
-     * for authentication.
+     * @param blockIndex  The block to where the data should be written
+     * @param data        16 byte of data.
+     * @param key         The MIFARE Classic key for the given sector.
+     * @param useAsKeyB   If true, key will be treated as key B
+     *                    for authentication.
      * @return The return codes are:<br />
      * <ul>
      * <li>0 - Everything went fine.</li>
@@ -399,11 +406,11 @@ public class MCReader {
      * @see #authenticate(int, byte[], boolean)
      */
     public int writeBlock(int sectorIndex, int blockIndex, byte[] data,
-            byte[] key, boolean useAsKeyB) {
-        if (getSectorCount()-1 < sectorIndex) {
+                          byte[] key, boolean useAsKeyB) {
+        if (getSectorCount() - 1 < sectorIndex) {
             return 1;
         }
-        if (mMFC.getBlockCountInSector(sectorIndex)-1 < blockIndex) {
+        if (mMFC.getBlockCountInSector(sectorIndex) - 1 < blockIndex) {
             return 2;
         }
         if (data.length != 16) {
@@ -425,14 +432,15 @@ public class MCReader {
 
     /**
      * Increase or decrease a Value Block.
+     *
      * @param sectorIndex The sector to where the data should be written
-     * @param blockIndex The block to where the data should be written
-     * @param value Increase or decrease Value Block by this value.
-     * @param increment If true, increment Value Block by value. Decrement
-     * if false.
-     * @param key The MIFARE Classic key for the given sector.
-     * @param useAsKeyB If true, key will be treated as key B
-     * for authentication.
+     * @param blockIndex  The block to where the data should be written
+     * @param value       Increase or decrease Value Block by this value.
+     * @param increment   If true, increment Value Block by value. Decrement
+     *                    if false.
+     * @param key         The MIFARE Classic key for the given sector.
+     * @param useAsKeyB   If true, key will be treated as key B
+     *                    for authentication.
      * @return The return codes are:<br />
      * <ul>
      * <li>0 - Everything went fine.</li>
@@ -444,11 +452,11 @@ public class MCReader {
      * @see #authenticate(int, byte[], boolean)
      */
     public int writeValueBlock(int sectorIndex, int blockIndex, int value,
-                          boolean increment, byte[] key, boolean useAsKeyB) {
-        if (getSectorCount()-1 < sectorIndex) {
+                               boolean increment, byte[] key, boolean useAsKeyB) {
+        if (getSectorCount() - 1 < sectorIndex) {
             return 1;
         }
-        if (mMFC.getBlockCountInSector(sectorIndex)-1 < blockIndex) {
+        if (mMFC.getBlockCountInSector(sectorIndex) - 1 < blockIndex) {
             return 2;
         }
         if (!authenticate(sectorIndex, key, useAsKeyB)) {
@@ -487,6 +495,7 @@ public class MCReader {
      * sectors on the tag (See {@link #getSectorCount()}). If you call
      * this method once more after a full key map was created, it resets the
      * key map and starts all over.
+     *
      * @return The sector that was just checked. On an error condition,
      * it returns "-1" and resets the key map to "null".
      * @see #getKeyMap()
@@ -498,7 +507,7 @@ public class MCReader {
         // Clear status and key map before new walk through sectors.
         boolean error = false;
         if (mKeysWithOrder != null && mLastSector != -1) {
-            if (mKeyMapStatus == mLastSector+1) {
+            if (mKeyMapStatus == mLastSector + 1) {
                 mKeyMapStatus = mFirstSector;
                 mKeyMap = new SparseArray<byte[][]>();
             }
@@ -508,11 +517,11 @@ public class MCReader {
                     Preference.AutoReconnect.toString(), false);
 
             byte[][] keys = new byte[2][];
-            boolean[] foundKeys = new boolean[] {false, false};
+            boolean[] foundKeys = new boolean[]{false, false};
 
             // Check next sector against all keys (lines) with
             // authentication method A and B.
-            for (int i = 0; i < mKeysWithOrder.size();) {
+            for (int i = 0; i < mKeysWithOrder.size(); ) {
                 byte[] key = mKeysWithOrder.get(i);
                 try {
                     if (!foundKeys[0] &&
@@ -586,6 +595,21 @@ public class MCReader {
         return mKeyMapStatus - 1;
     }
 
+    public boolean checkKey(int KeyMapStatus, byte[] keyInByte, Context context) {
+        boolean checkResult;
+        try {
+            checkResult = mMFC.authenticateSectorWithKeyA(
+                    KeyMapStatus, keyInByte);
+            if (checkResult) return checkResult;
+            checkResult = mMFC.authenticateSectorWithKeyB(
+                    KeyMapStatus, keyInByte);
+            return checkResult;
+        } catch (Exception e) {
+            Toast.makeText(context, e.toString(), Toast.LENGTH_LONG).show();
+            return false;
+        }
+    }
+
     /**
      * Merge the result of two {@link #readSector(int, byte[], boolean)}
      * calls on the same sector (with different keys or authentication methods).
@@ -593,10 +617,11 @@ public class MCReader {
      * empty ones and the keys will be added correctly to the sector trailer.
      * The access conditions will be taken from the first (firstResult)
      * parameter if it is not null.
-     * @param firstResult First
-     * {@link #readSector(int, byte[], boolean)} result.
+     *
+     * @param firstResult  First
+     *                     {@link #readSector(int, byte[], boolean)} result.
      * @param secondResult Second
-     * {@link #readSector(int, byte[], boolean)} result.
+     *                     {@link #readSector(int, byte[], boolean)} result.
      * @return Array (sector) as result of merging the given
      * sectors. If a block is {@link #NO_DATA} it
      * means that none of the given sectors contained data from this block.
@@ -604,18 +629,18 @@ public class MCReader {
      * @see #authenticate(int, byte[], boolean)
      */
     public String[] mergeSectorData(String[] firstResult,
-            String[] secondResult) {
+                                    String[] secondResult) {
         String[] ret = null;
         if (firstResult != null || secondResult != null) {
             if ((firstResult != null && secondResult != null)
                     && firstResult.length != secondResult.length) {
                 return null;
             }
-            int length  = (firstResult != null)
+            int length = (firstResult != null)
                     ? firstResult.length : secondResult.length;
             ArrayList<String> blocks = new ArrayList<String>();
             // Merge data blocks.
-            for (int i = 0; i < length -1 ; i++) {
+            for (int i = 0; i < length - 1; i++) {
                 if (firstResult != null && firstResult[i] != null
                         && !firstResult[i].equals(NO_DATA)) {
                     blocks.add(firstResult[i]);
@@ -659,11 +684,12 @@ public class MCReader {
      * ({@link Common#getOperationInfoForBlock(byte, byte, byte,
      * de.syss.MifareClassicTool.Common.Operations, boolean, boolean)}) of the
      * Access Conditions.
-     * @param pos A map of positions (key = sector, value = Array of blocks).
-     * For each of these positions you will get the write information
-     * (see return values).
+     *
+     * @param pos    A map of positions (key = sector, value = Array of blocks).
+     *               For each of these positions you will get the write information
+     *               (see return values).
      * @param keyMap A key map generated by
-     * {@link de.syss.MifareClassicTool.Activities.KeyMapCreator}.
+     *               {@link de.syss.MifareClassicTool.Activities.KeyMapCreator}.
      * @return A map within a map (all with type = Integer).
      * The key of the outer map is the sector number and the value is another
      * map with key = block number and value = write information.
@@ -680,7 +706,7 @@ public class MCReader {
      * <li>6 - Key B, but keys never</li>
      * <li>-1 - Error</li>
      * <li>Inner map == null - Whole sector is dead (IO Error) or ACs are
-     *  incorrect</li>
+     * incorrect</li>
      * <li>null - Authentication error</li>
      * </ul>
      */
@@ -688,7 +714,7 @@ public class MCReader {
             HashMap<Integer, int[]> pos,
             SparseArray<byte[][]> keyMap) {
         HashMap<Integer, HashMap<Integer, Integer>> ret =
-                new HashMap<Integer, HashMap<Integer,Integer>>();
+                new HashMap<Integer, HashMap<Integer, Integer>>();
         for (int i = 0; i < keyMap.size(); i++) {
             int sector = keyMap.keyAt(i);
             if (pos.containsKey(sector)) {
@@ -708,7 +734,7 @@ public class MCReader {
                 }
                 // Read MIFARE Access Conditions.
                 int acBlock = mMFC.sectorToBlock(sector)
-                        + mMFC.getBlockCountInSector(sector) -1;
+                        + mMFC.getBlockCountInSector(sector) - 1;
                 try {
                     ac = mMFC.readBlock(acBlock);
                 } catch (Exception e) {
@@ -802,12 +828,13 @@ public class MCReader {
     /**
      * Set the key files for {@link #buildNextKeyMapPart()}.
      * Key duplicates from the key file will be removed.
+     *
      * @param keyFiles One or more key files.
-     * These files are simple text files with one key
-     * per line. Empty lines and lines STARTING with "#"
-     * will not be interpreted.
-     * @param context The context in which the possible "Out of memory"-Toast
-     * will be shown.
+     *                 These files are simple text files with one key
+     *                 per line. Empty lines and lines STARTING with "#"
+     *                 will not be interpreted.
+     * @param context  The context in which the possible "Out of memory"-Toast
+     *                 will be shown.
      * @return True if the key files are correctly loaded. False
      * on error (out of memory).
      */
@@ -839,8 +866,9 @@ public class MCReader {
 
     /**
      * Set the mapping range for {@link #buildNextKeyMapPart()}.
+     *
      * @param firstSector Index of the first sector of the key map.
-     * @param lastSector Index of the last sector of the key map.
+     * @param lastSector  Index of the last sector of the key map.
      * @return True if range parameters were correct. False otherwise.
      */
     public boolean setMappingRange(int firstSector, int lastSector) {
@@ -849,7 +877,7 @@ public class MCReader {
             mFirstSector = firstSector;
             mLastSector = lastSector;
             // Init. status of buildNextKeyMapPart to create a new key map.
-            mKeyMapStatus = lastSector+1;
+            mKeyMapStatus = lastSector + 1;
             return true;
         }
         return false;
@@ -857,14 +885,15 @@ public class MCReader {
 
     /**
      * Authenticate with given sector of the tag.
+     *
      * @param sectorIndex The sector with which to authenticate.
-     * @param key Key for the authentication.
-     * @param useAsKeyB If true, key will be treated as key B
-     * for authentication.
+     * @param key         Key for the authentication.
+     * @param useAsKeyB   If true, key will be treated as key B
+     *                    for authentication.
      * @return True if authentication was successful. False otherwise.
      */
     private boolean authenticate(int sectorIndex, byte[] key,
-            boolean useAsKeyB) {
+                                 boolean useAsKeyB) {
         try {
             if (!useAsKeyB) {
                 // Key A.
@@ -887,6 +916,7 @@ public class MCReader {
      * <li>C1 = 0, C2 = 0, C3 = 1</li>
      * <li>C1 = 0, C2 = 1, C3 = 0</li>
      * </ul>
+     *
      * @param ac The access conditions (4 bytes).
      * @return True if key B is readable. False otherwise.
      */
@@ -906,6 +936,7 @@ public class MCReader {
      * full key map, you have to call {@link #buildNextKeyMapPart()} as
      * often as there are sectors on the tag
      * (See {@link #getSectorCount()}).
+     *
      * @return A Key-Value Pair. Keys are the sector numbers,
      * values are the MIFARE keys.
      * The MIFARE keys are 2D arrays with key type (first dimension, 0-1,
@@ -926,6 +957,7 @@ public class MCReader {
     /**
      * Return the size of the MIFARE Classic tag in bits.
      * (e.g. MIFARE Classic 1k = 1024)
+     *
      * @return The size of the current tag.
      */
     public int getSize() {
@@ -934,6 +966,7 @@ public class MCReader {
 
     /**
      * Return the sector count of the MIFARE Classic tag.
+     *
      * @return The sector count of the current tag.
      */
     public int getSectorCount() {
@@ -949,6 +982,7 @@ public class MCReader {
 
     /**
      * Return the block count of the MIFARE Classic tag.
+     *
      * @return The block count of the current tag.
      */
     public int getBlockCount() {
@@ -957,6 +991,7 @@ public class MCReader {
 
     /**
      * Return the block count in a specific sector.
+     *
      * @param sectorIndex Index of a sector.
      * @return Block count in given sector.
      */
@@ -966,6 +1001,7 @@ public class MCReader {
 
     /**
      * Check if the reader is connected to the tag.
+     *
      * @return True if the reader is connected. False otherwise.
      */
     public boolean isConnected() {
@@ -990,8 +1026,7 @@ public class MCReader {
     public void close() {
         try {
             mMFC.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             Log.d(LOG_TAG, "Error on closing tag.");
         }
     }
